@@ -30,12 +30,10 @@ class DefaultMerger : Merger {
                 is JsonObject -> Success(JsonObject(mergeObject(base.value, other.value)))
                 else -> Failure("Not a JSON object: $other")
             }
-
             is JsonArray -> when (other) {
                 is JsonArray -> mergeArray(base, other)
                 else -> Failure("Not a JSON array: $other")
             }
-
             is JsonString -> Success(other)
             is JsonNull -> Success(other)
             else -> Failure("Unsupported JSON: $base")
@@ -44,45 +42,41 @@ class DefaultMerger : Merger {
     private fun mergeObject(base: JSONObject, other: JSONObject): JSONObject {
         val baseKeys = base.keySet()
         val otherKeys = other.keySet()
-        val jsonObject = JSONObject()
+        val merged = JSONObject()
+
+        // Add all fields unique to the base JSON
+        baseKeys.filterNot { otherKeys.contains(it) }.forEach { key ->
+            merged.put(key, base[key])
+        }
+
+        // Resolve the overlapping fields
         otherKeys.filter { other[it] != JSONObject.NULL }.forEach { key ->
             if (baseKeys.contains(key)) {
                 // Merge the common key
-                mergeObjectKey(other, base, jsonObject, key)
+                mergeObjectKey(key, base, other, merged)
             } else {
                 // Add a new key from the other JSON
-                jsonObject.put(key, other[key])
+                merged.put(key, other[key])
             }
         }
-        // Add all other nodes unique to the base JSON
-        baseKeys.filterNot { otherKeys.contains(it) }.forEach { key ->
-            jsonObject.put(key, base[key])
-        }
-        return jsonObject
+        return merged
     }
 
     private fun mergeObjectKey(
-        other: JSONObject,
+        key: String,
         base: JSONObject,
-        jsonObject: JSONObject,
-        key: String
+        other: JSONObject,
+        merged: JSONObject
     ) {
-        other[key]?.let { value ->
-            when (value) {
-                is JSONObject -> {
-                    when (val baseValue = base[key]) {
-                        is JSONObject -> jsonObject.put(
-                            key,
-                            mergeObject(baseValue, value)
-                        )
-
-                        else -> jsonObject.put(key, value)
-                    }
+        when (val value = other[key]) {
+            is JSONObject -> {
+                when (val baseValue = base[key]) {
+                    is JSONObject -> merged.put(key, mergeObject(baseValue, value))
+                    else -> merged.put(key, value)
                 }
-
-                else -> jsonObject.put(key, value)
             }
-        } ?: jsonObject.put(key, base[key])
+            else -> merged.put(key, value)
+        }
     }
 
     private fun mergeArray(base: JsonArray, other: JsonArray): MergeResult {
