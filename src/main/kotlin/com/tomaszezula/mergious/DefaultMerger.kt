@@ -1,41 +1,26 @@
 package com.tomaszezula.mergious
 
-import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 
 class DefaultMerger : Merger {
-    override fun merge(base: String, other: String?): MergeResult =
-        merge(toJson(base), other?.let { toJson(it) } ?: JsonNull)
-
-    private fun toJson(text: String?): Json =
-        text?.let { value ->
-            value.parseAs(::JSONObject)?.let { JsonObject(it) }
-                ?: value.parseAs(::JSONArray)?.let { JsonArray(it) }
-                ?: JsonString(value)
-        } ?: JsonNull
-
-
-    private fun <T> String.parseAs(p: (String) -> T): T? {
-        return try {
-            p(this)
-        } catch (_: JSONException) {
-            null
-        }
+    companion object {
+        const val NullValue = "null"
     }
+    override fun merge(base: String, other: String?): MergeResult =
+        merge(base.toJson(), other.toJson())
 
     private fun merge(base: Json, other: Json): MergeResult =
         when (base) {
             is JsonObject -> when (other) {
-                is JsonObject -> Success(JsonObject(mergeObject(base.value, other.value)))
-                else -> Failure("Not a JSON object: $other")
+                is JsonObject -> tryMerge(base.value) { JsonObject(mergeObject(it, other.value)) }
+                is JsonArray, is JsonString, is JsonNull -> Success(other)
+                else -> Failure("Unsupported format: $other")
             }
-            is JsonArray -> when (other) {
-                is JsonArray -> mergeArray(base, other)
-                else -> Failure("Not a JSON array: $other")
+            is JsonArray -> when(other) {
+                is JsonObject -> Success(JsonObject(other.value.removeNulls()))
+                else -> Success(other)
             }
-            is JsonString -> Success(other)
-            is JsonNull -> Success(other)
+            is JsonString, is JsonNull -> Success(other)
             else -> Failure("Unsupported JSON: $base")
         }
 
@@ -53,10 +38,15 @@ class DefaultMerger : Merger {
         otherKeys.filter { other[it] != JSONObject.NULL }.forEach { key ->
             if (baseKeys.contains(key)) {
                 // Merge the common key
-                mergeObjectKey(key, base, other, merged)
+                mergeObjectKey(key, base, other.removeNulls(), merged)
             } else {
                 // Add a new key from the other JSON
-                merged.put(key, other[key])
+                merged.put(
+                    key, when (val value = other[key]) {
+                        is JSONObject -> value.removeNulls()
+                        else -> value
+                    }
+                )
             }
         }
         return merged
@@ -79,11 +69,10 @@ class DefaultMerger : Merger {
         }
     }
 
-    private fun mergeArray(base: JsonArray, other: JsonArray): MergeResult {
-        TODO()
-    }
-
-    private fun mergeString(base: JsonString, other: String?): MergeResult {
-        TODO()
-    }
+    private fun <T, R : Json> tryMerge(base: T, f: (T) -> R): MergeResult =
+        try {
+            Success(f(base))
+        } catch (t: Throwable) {
+            Failure("Merge failed", t)
+        }
 }

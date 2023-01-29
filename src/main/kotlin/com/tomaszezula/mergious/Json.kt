@@ -23,14 +23,14 @@ value class JsonObject(val value: JSONObject) : Json {
     override fun print(): String = value.toString()
 }
 @JvmInline
-value class JsonString(val value: String) : Json {
-    override fun prettyPrint(): String = value
+value class JsonString(private val value: String) : Json {
+    override fun prettyPrint(): String = print()
 
-    override fun print(): String = print()
+    override fun print(): String = value
 }
 
 object JsonNull : Json {
-    override fun prettyPrint(): String = "null"
+    override fun prettyPrint(): String = print()
 
-    override fun print(): String = print()
+    override fun print(): String = "null"
 }
