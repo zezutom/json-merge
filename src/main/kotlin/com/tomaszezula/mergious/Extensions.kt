@@ -4,11 +4,13 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
+private const val NULL_VALUE = "null"
+
 fun String?.toJson(): Json =
     this?.let { value ->
         value.parseAs(::JSONObject)?.let { JsonObject(it) }
             ?: value.parseAs(::JSONArray)?.let { JsonArray(it) }
-            ?: if (value == DefaultMerger.NullValue) JsonNull else JsonString(value)
+            ?: if (value == NULL_VALUE) JsonNull else JsonString(value)
     } ?: JsonNull
 
 fun JSONObject.removeNulls(): JSONObject {

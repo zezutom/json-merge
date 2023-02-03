@@ -1,30 +1,33 @@
-package com.tomaszezula.mergious
+package com.tomaszezula.mergious.strategy
 
+import com.tomaszezula.mergious.toJson
+import com.tomaszezula.mergious.verifySuccess
 import org.junit.jupiter.api.Test
 
 /**
  * These tests verify compliance with Json Merge Patch specification defined by RfC 7396.
  * https://www.rfc-editor.org/rfc/rfc7396
  */
-class JsonMergePatchTest {
-    private val merger = DefaultMerger()
+class JsonPatchMergeStrategyTest {
+
+    private val strategy = JsonPatchMergeStrategy()
 
     @Test
     fun `simple patch`() {
-        val mergeResult = merger.merge(
+        val strategyResult = strategy.merge(
             """
                {
                  "a":"b"
                }
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                {
                  "a":"c"
                }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                {
                  "a":"c"
@@ -35,20 +38,20 @@ class JsonMergePatchTest {
 
     @Test
     fun `union of non-overlapping fields`() {
-        val mergeResult = merger.merge(
+        val strategyResult = strategy.merge(
             """
                {
                  "a":"b"
                }
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                {
                  "b":"c"
                }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                {
                  "a":"b",
@@ -59,39 +62,39 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `null value removes an entire field`() {
-        val mergeResult = merger.merge(
+    fun `null value should remove an entire field`() {
+        val strategyResult = strategy.merge(
             """
                {
                  "a":"b"
                }
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                {
                  "a":null
                }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
-        verifySuccess(mergeResult, "{}")
+        verifySuccess(strategyResult, "{}")
     }
 
     @Test
-    fun `null value removes the relevant field only`() {
-        val mergeResult = merger.merge(
+    fun `null value should remove the relevant field only`() {
+        val strategyResult = strategy.merge(
             """
                {
                  "a":"b",
                  "b":"c"
                }
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                {
                  "a":null
                }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                {
                  "b":"c"
@@ -101,21 +104,21 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `patch overrides the field value even when data type doesn't match`() {
-        val mergeResult = merger.merge(
+    fun `patch should override the field value even when data type doesn't match`() {
+        val strategyResult = strategy.merge(
             """
                {
                  "a":["b"]
                }
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                {
                  "a":"c"
                }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                {
                  "a":"c"
@@ -125,21 +128,21 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `patch overrides the field value even when data type doesn't match, either way`() {
-        val mergeResult = merger.merge(
+    fun `patch should override the field value even when data type doesn't match, either way`() {
+        val strategyResult = strategy.merge(
             """
                {
                  "a":"c"
                }
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                {
                  "a":["b"]
                }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                {
                  "a":["b"]
@@ -149,15 +152,15 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `null overlapping and non-overlapping fields combo works as expected`() {
-        val mergeResult = merger.merge(
+    fun `null overlapping and non-overlapping fields combo should work as expected`() {
+        val strategyResult = strategy.merge(
             """
                {
                  "a":{
                     "b":"c"
                  }
                }
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                {
                  "a":{
@@ -165,10 +168,10 @@ class JsonMergePatchTest {
                    "c":null
                  }
                }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                {
                  "a":{
@@ -180,23 +183,23 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `new array overrides the old one`() {
-        val mergeResult = merger.merge(
+    fun `new array should override the old one`() {
+        val strategyResult = strategy.merge(
             """
                {
                  "a":[
                     {"b":"c"}
                  ]
                }
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                {
                  "a":[1]
                }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                {
                  "a":[1]
@@ -206,17 +209,17 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `json array is replaced with a new one`() {
-        val mergeResult = merger.merge(
+    fun `json array should be replaced with a new one`() {
+        val strategyResult = strategy.merge(
             """
                 ["a","b"]
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                 ["c","d"]
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                 ["c","d"]
             """.trimIndent()
@@ -224,59 +227,59 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `json object is replaced with a json array`() {
-        val mergeResult = merger.merge(
+    fun `json object should be replaced with a json array`() {
+        val strategyResult = strategy.merge(
             """
                 {"a":"b"}
-            """.trimIndent(),
+            """.trimIndent().toJson(),
+            """
+                ["c"]
+            """.trimIndent().toJson()
+        )
+        verifySuccess(
+            strategyResult,
             """
                 ["c"]
             """.trimIndent()
         )
-        verifySuccess(
-            mergeResult,
-            """
-                ["c"]
-            """.trimIndent()
-        )
     }
 
     @Test
-    fun `json object is nullified`() {
-        val mergeResult = merger.merge(
+    fun `json object should be nullified`() {
+        val strategyResult = strategy.merge(
             """
                 {"a":"foo"}
-            """.trimIndent(), "null"
+            """.trimIndent().toJson(), "null".toJson()
         )
         verifySuccess(
-            mergeResult, "null"
+            strategyResult, "null"
         )
     }
 
     @Test
-    fun `json object is replaced with json string`() {
-        val mergeResult = merger.merge(
+    fun `json object should be replaced with json string`() {
+        val strategyResult = strategy.merge(
             """
                 {"a":"foo"}
-            """.trimIndent(), "bar"
+            """.trimIndent().toJson(), "bar".toJson()
         )
         verifySuccess(
-            mergeResult, "bar"
+            strategyResult, "bar"
         )
     }
 
     @Test
-    fun `null field in the original object is preserved`() {
-        val mergeResult = merger.merge(
+    fun `null field in the original object should be preserved`() {
+        val strategyResult = strategy.merge(
             """
                 {"e":null}
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                 {"a":1}
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                 {
                     "a":1,
@@ -287,20 +290,20 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `null field in the other object is dropped`() {
-        val mergeResult = merger.merge(
+    fun `null field in the other object should be dropped`() {
+        val strategyResult = strategy.merge(
             """
                 {}
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                 {
                     "a":"b",
                     "c":null
                 }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                 {
                     "a":"b"
@@ -310,20 +313,20 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `json array is replaced with a json object`() {
-        val mergeResult = merger.merge(
+    fun `json array should be replaced with a json object`() {
+        val strategyResult = strategy.merge(
             """
                 [1,2]
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                 {
                     "a":"b",
                     "c":null
                 }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                 {"a":"b"}
             """.trimIndent()
@@ -331,11 +334,11 @@ class JsonMergePatchTest {
     }
 
     @Test
-    fun `nested null field in the other object is dropped`() {
-        val mergeResult = merger.merge(
+    fun `nested null field in the other object should be dropped`() {
+        val strategyResult = strategy.merge(
             """
                 {}
-            """.trimIndent(),
+            """.trimIndent().toJson(),
             """
                 {
                     "a": {
@@ -344,10 +347,10 @@ class JsonMergePatchTest {
                       }
                     }
                 }
-            """.trimIndent()
+            """.trimIndent().toJson()
         )
         verifySuccess(
-            mergeResult,
+            strategyResult,
             """
                 {
                     "a": {
@@ -357,5 +360,4 @@ class JsonMergePatchTest {
             """.trimIndent()
         )
     }
-
 }

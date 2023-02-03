@@ -2,11 +2,11 @@ package com.tomaszezula.mergious
 
 import org.junit.jupiter.api.Test
 
-class MergeObjectTest {
-    private val merger = DefaultMerger()
+class MergeObjectInDefaultModeTest {
+    private val merger = MergeBuilder().build()
 
     @Test
-    fun `existing member field is updated with a new value`() {
+    fun `a primitive field should be updated with a new value`() {
         val mergeResult = merger.merge(
             """
            {
@@ -30,7 +30,7 @@ class MergeObjectTest {
     }
 
     @Test
-    fun `existing member field is updated with a new value and all other fields are preserved`() {
+    fun `existing member field should be updated with a new value and all other fields should be preserved`() {
         val mergeResult = merger.merge(
             """
            {
@@ -62,7 +62,7 @@ class MergeObjectTest {
     }
 
     @Test
-    fun `null value removes a field from the merged object`() {
+    fun `null value should remove a field from the merged object`() {
         val mergeResult = merger.merge(
             """
            {
@@ -89,7 +89,7 @@ class MergeObjectTest {
     }
 
     @Test
-    fun `null value removes a nested field from the merged object`() {
+    fun `null value should remove a nested field from the merged object`() {
         val mergeResult = merger.merge(
             """
            {

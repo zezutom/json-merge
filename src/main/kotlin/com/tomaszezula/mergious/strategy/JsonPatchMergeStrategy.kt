@@ -1,25 +1,23 @@
-package com.tomaszezula.mergious
+package com.tomaszezula.mergious.strategy
 
+import com.tomaszezula.mergious.*
 import org.json.JSONObject
 
-class DefaultMerger : Merger {
-    companion object {
-        const val NullValue = "null"
-    }
-    override fun merge(base: String, other: String?): MergeResult =
-        merge(base.toJson(), other.toJson())
+class JsonPatchMergeStrategy : MergeStrategy {
 
-    private fun merge(base: Json, other: Json): MergeResult =
+    override fun merge(base: Json, other: Json): MergeResult =
         when (base) {
             is JsonObject -> when (other) {
                 is JsonObject -> tryMerge(base.value) { JsonObject(mergeObject(it, other.value)) }
                 is JsonArray, is JsonString, is JsonNull -> Success(other)
                 else -> Failure("Unsupported format: $other")
             }
-            is JsonArray -> when(other) {
+
+            is JsonArray -> when (other) {
                 is JsonObject -> Success(JsonObject(other.value.removeNulls()))
                 else -> Success(other)
             }
+
             is JsonString, is JsonNull -> Success(other)
             else -> Failure("Unsupported JSON: $base")
         }
@@ -35,21 +33,21 @@ class DefaultMerger : Merger {
         }
 
         // Resolve the overlapping fields
-        otherKeys.filter { other[it] != JSONObject.NULL }.forEach { key ->
+        otherKeys.forEach { key ->
             if (baseKeys.contains(key)) {
                 // Merge the common key
-                mergeObjectKey(key, base, other.removeNulls(), merged)
+                mergeObjectKey(key, base, other, merged)
             } else {
                 // Add a new key from the other JSON
                 merged.put(
                     key, when (val value = other[key]) {
-                        is JSONObject -> value.removeNulls()
+                        is JSONObject -> value
                         else -> value
                     }
                 )
             }
         }
-        return merged
+        return merged.removeNulls()
     }
 
     private fun mergeObjectKey(
@@ -65,6 +63,7 @@ class DefaultMerger : Merger {
                     else -> merged.put(key, value)
                 }
             }
+
             else -> merged.put(key, value)
         }
     }
