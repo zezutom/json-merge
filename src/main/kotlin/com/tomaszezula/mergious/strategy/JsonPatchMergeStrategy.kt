@@ -27,11 +27,6 @@ class JsonPatchMergeStrategy : MergeStrategy {
         val otherKeys = other.keySet()
         val merged = JSONObject()
 
-        // Add all fields unique to the base JSON
-        baseKeys.filterNot { otherKeys.contains(it) }.forEach { key ->
-            merged.put(key, base[key])
-        }
-
         // Resolve the overlapping fields
         otherKeys.forEach { key ->
             if (baseKeys.contains(key)) {
@@ -47,7 +42,16 @@ class JsonPatchMergeStrategy : MergeStrategy {
                 )
             }
         }
-        return merged.removeNulls()
+
+        // Drop null fields resulting from the merge
+        val result = merged.removeNulls()
+
+        // Add all fields unique to the base JSON
+        baseKeys.filterNot { otherKeys.contains(it) }.forEach { key ->
+            result.put(key, base[key])
+        }
+
+        return result
     }
 
     private fun mergeObjectKey(
