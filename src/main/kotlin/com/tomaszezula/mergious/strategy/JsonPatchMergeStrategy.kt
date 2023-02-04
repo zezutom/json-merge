@@ -12,12 +12,10 @@ class JsonPatchMergeStrategy : MergeStrategy {
                 is JsonArray, is JsonString, is JsonNull -> Success(other)
                 else -> Failure("Unsupported format: $other")
             }
-
             is JsonArray -> when (other) {
                 is JsonObject -> Success(JsonObject(other.value.removeNulls()))
                 else -> Success(other)
             }
-
             is JsonString, is JsonNull -> Success(other)
             else -> Failure("Unsupported JSON: $base")
         }
@@ -27,19 +25,13 @@ class JsonPatchMergeStrategy : MergeStrategy {
         val otherKeys = other.keySet()
         val merged = JSONObject()
 
-        // Resolve the overlapping fields
         otherKeys.forEach { key ->
             if (baseKeys.contains(key)) {
                 // Merge the common key
                 mergeObjectKey(key, base, other, merged)
             } else {
                 // Add a new key from the other JSON
-                merged.put(
-                    key, when (val value = other[key]) {
-                        is JSONObject -> value
-                        else -> value
-                    }
-                )
+                merged.put(key, other[key])
             }
         }
 
@@ -47,7 +39,7 @@ class JsonPatchMergeStrategy : MergeStrategy {
         val result = merged.removeNulls()
 
         // Add all fields unique to the base JSON
-        baseKeys.filterNot { otherKeys.contains(it) }.forEach { key ->
+        baseKeys.filterNot(otherKeys::contains).forEach { key ->
             result.put(key, base[key])
         }
 
@@ -71,11 +63,4 @@ class JsonPatchMergeStrategy : MergeStrategy {
             else -> merged.put(key, value)
         }
     }
-
-    private fun <T, R : Json> tryMerge(base: T, f: (T) -> R): MergeResult =
-        try {
-            Success(f(base))
-        } catch (t: Throwable) {
-            Failure("Merge failed", t)
-        }
 }

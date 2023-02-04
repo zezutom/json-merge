@@ -23,7 +23,7 @@ value class JsonObject(val value: JSONObject) : Json {
     override fun print(): String = value.toString()
 }
 @JvmInline
-value class JsonString(private val value: String) : Json {
+value class JsonString(val value: String) : Json {
     override fun prettyPrint(): String = print()
 
     override fun print(): String = value
