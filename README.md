@@ -7,6 +7,7 @@ The library supports several merging modes.
 * [JSON Merge Patch (RFC 7386)](#json-merge-patch). That's the default.
 * [Combine mode](#combine-mode)
 * [Replace mode](#replace-mode)
+  hahaha
 
 ## Json Merge Patch
 
@@ -83,14 +84,14 @@ This mode tries to preserve maximum information from both the original and the o
 val merger = MergeBuilder().withCombineMode().build()
 val original =
     """
-           { "a": "b", "c": [1,2,3] }
+           { "a": "b" }
         """
 val other =
     """
-           { "a": "B", "c": [4,5,6] }
+           { "a": "c" }
         """
 val result = merger.merge(original, other)
-// result: { "a": "B", "c": [1,2,3,4,5,6] }
+// result: { "a": ["b", "c"] }
 ```
 
 Merge results for different inputs:
@@ -98,7 +99,7 @@ Merge results for different inputs:
 ```
     ORIGINAL        OTHER            RESULT
    ------------------------------------------
-   {"a":"b"}       {"a":"c"}       {"a":"c"}
+   {"a":"b"}       {"a":"c"}       {"a":["b","c"]}
 
    {"a":"b"}       {"b":"c"}       {"a":"b",
                                     "b":"c"}
@@ -143,6 +144,7 @@ Merge results for different inputs:
 ```
 
 ## Replace Mode
+
 This mode simply ensures that the original object or array is fully replaced with the new one.
 
 ```kotlin
@@ -152,7 +154,7 @@ val original =
            { "a": "b", "c": [1,2,3] }
         """
 val other =
-        """
+    """
            { "a": "B", "c": [4,5,6] }
         """
 val result = merger.merge(original, other)

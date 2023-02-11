@@ -26,7 +26,7 @@ class CombineMergeStrategyTest {
             strategyResult,
             """
                {
-                 "a":"c"
+                 "a":["b", "c"]
                }
             """.trimIndent()
         )

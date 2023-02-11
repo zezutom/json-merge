@@ -80,6 +80,9 @@ fun <T, R : Json> tryMerge(base: T, f: (T) -> R): MergeResult =
         Failure("Merge failed", t)
     }
 
+fun <T> JSONArray.addItem(item: T): JSONArray =
+    JSONArray().putAll(this).put(item)
+
 private fun <T> String.parseAs(p: (String) -> T): T? {
     return try {
         p(this)

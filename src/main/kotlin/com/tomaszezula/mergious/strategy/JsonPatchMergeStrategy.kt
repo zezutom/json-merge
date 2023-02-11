@@ -7,17 +7,21 @@ class JsonPatchMergeStrategy : MergeStrategy {
 
     override fun merge(base: Json, other: Json): MergeResult =
         when (base) {
-            is JsonObject -> when (other) {
-                is JsonObject -> tryMerge(base.value) { JsonObject(mergeObject(it, other.value)) }
-                is JsonArray, is JsonString, is JsonNull -> Success(other)
-                else -> Failure("Unsupported format: $other")
+            is JsonObject -> tryMerge(base) {
+                when (other) {
+                    is JsonObject -> JsonObject(mergeObject(it.value, other.value))
+                    else -> other
+                }
             }
-            is JsonArray -> when (other) {
-                is JsonObject -> Success(JsonObject(other.value.removeNulls()))
-                else -> Success(other)
+
+            is JsonArray -> tryMerge(other) {
+                when (it) {
+                    is JsonObject -> JsonObject(it.value.removeNulls())
+                    else -> it
+                }
             }
-            is JsonString, is JsonNull -> Success(other)
-            else -> Failure("Unsupported JSON: $base")
+
+            else -> Success(other)
         }
 
     private fun mergeObject(base: JSONObject, other: JSONObject): JSONObject {
@@ -42,7 +46,6 @@ class JsonPatchMergeStrategy : MergeStrategy {
         baseKeys.filterNot(otherKeys::contains).forEach { key ->
             result.put(key, base[key])
         }
-
         return result
     }
 

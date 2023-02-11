@@ -3,26 +3,40 @@ package com.tomaszezula.mergious.strategy
 import com.tomaszezula.mergious.*
 import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONString
 
 class CombineMergeStrategy : MergeStrategy {
     companion object {
         const val MergedField = "merged"
     }
-    override fun merge(base: Json, other: Json): MergeResult =
-        when (base) {
-            is JsonObject -> when (other) {
-                is JsonObject -> tryMerge(base.value) { JsonObject(mergeObject(base.value, other.value)) }
-                else -> Success(base.add(MergedField, other))
-            }
 
-            is JsonArray -> when (other) {
-                is JsonArray -> tryMerge(base.value) { JsonArray(mergeArray(base.value, other.value)) }
-                else -> Success(base.append(other))
+    override fun merge(base: Json, other: Json): MergeResult = when (base) {
+        is JsonObject -> tryMerge(base) {
+            when (other) {
+                is JsonObject -> JsonObject(mergeObject(it.value, other.value))
+                is JsonString, is JsonArray -> it.add(MergedField, other)
+                else -> it
             }
-
-            is JsonString, is JsonNull -> Success(other)
-            else -> Failure("Unsupported JSON: $base")
         }
+
+        is JsonArray -> tryMerge(base) {
+            when (other) {
+                is JsonArray -> JsonArray(mergeArray(it.value, other.value))
+                else -> it.append(other)
+            }
+        }
+
+        is JsonString -> tryMerge(base) {
+            when (other) {
+                is JsonObject -> JsonArray(JSONArray(listOf(it.value, other.value)))
+                is JsonArray -> JsonArray(other.value.addItem(it.value))
+                is JsonString -> JsonArray(JSONArray(listOf(it.value, other.value)))
+                else -> it
+            }
+        }
+
+        else -> Success(base)
+    }
 
     private fun mergeObject(base: JSONObject, other: JSONObject): JSONObject {
         val baseKeys = base.keySet()
@@ -34,11 +48,28 @@ class CombineMergeStrategy : MergeStrategy {
             if (baseKeys.contains(key)) {
                 when (val baseValue = base[key]) {
                     is JSONObject -> when (val otherValue = other[key]) {
-                        is JSONObject -> mergeObject(baseValue, otherValue)
-                        else -> result.put(key, baseValue.add(MergedField, otherValue))
+                        is JSONObject -> {
+                            mergeObject(baseValue, otherValue)
+                        }
+
+                        is JSONString -> result.put(key, baseValue.add(MergedField, otherValue))
+                        else -> result.put(key, baseValue)
                     }
-                    is JSONArray -> result.put(key, baseValue.append(other[key]))
-                    else -> result.put(key, other[key])
+
+                    is JSONArray -> {
+                        result.put(key, baseValue.append(other[key]))
+                    }
+
+                    else -> {
+                        val mergedValue = when (val otherValue = other[key]) {
+                            is JSONArray -> {
+                                otherValue.addItem(baseValue)
+                            }
+
+                            else -> JSONArray(listOf(baseValue, otherValue))
+                        }
+                        result.put(key, mergedValue)
+                    }
                 }
             } else {
                 result.put(key, other[key])
