@@ -8,8 +8,6 @@ The library supports several merging modes.
 * [Combine mode](#combine-mode)
 * [Replace mode](#replace-mode)
 
-[JSON Patch (RFC 6902)](https://datatracker.ietf.org/doc/html/rfc6902/). That's the default.
-
 ## Json Merge Patch
 
 Adheres to [JSON Merge Patch (RFC 7386)](https://www.rfc-editor.org/rfc/rfc7386). This is the default behaviour.
