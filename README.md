@@ -1,6 +1,6 @@
-# Mergious
+# json-merge
 
-**Mergious** is a Kotlin library that lets you merge JSON objects and arrays.
+**json-merge** is a Kotlin library that lets you merge JSON objects and arrays.
 
 The library supports several merging modes.
 
