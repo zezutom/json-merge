@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.7.21"
-    id("io.snyk.gradle.plugin.snykplugin") version "0.4"
+    id("org.sonarqube") version "3.5.0.2730"
     jacoco
 }
 
@@ -19,11 +19,12 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:5.5.4")
 }
 
-configure<io.snyk.gradle.plugin.SnykExtension> {
-    setSeverity("high")
-    setAutoDownload(true)
-    setAutoUpdate(true)
-    setArguments("--all-sub-projects")
+sonarqube {
+    properties {
+        property("sonar.projectKey", "zezutom_json-merge")
+        property("sonar.organization", "zezutom")
+        property("sonar.host.url", "https://sonarcloud.io")
+    }
 }
 
 tasks.test {
