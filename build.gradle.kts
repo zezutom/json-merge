@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.7.21"
+    id("io.snyk.gradle.plugin.snykplugin") version "0.4"
     jacoco
 }
 
@@ -16,6 +17,13 @@ dependencies {
     implementation("org.json:json:20220924")
     testImplementation(kotlin("test"))
     testImplementation("io.kotest:kotest-assertions-core:5.5.4")
+}
+
+configure<io.snyk.gradle.plugin.SnykExtension> {
+    setSeverity("high")
+    setAutoDownload(true)
+    setAutoUpdate(true)
+    setArguments("--all-sub-projects")
 }
 
 tasks.test {
