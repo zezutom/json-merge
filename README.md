@@ -7,7 +7,6 @@ The library supports several merging modes.
 * [JSON Merge Patch (RFC 7386)](#json-merge-patch). That's the default.
 * [Combine mode](#combine-mode)
 * [Replace mode](#replace-mode)
-  hahaha
 
 ## Json Merge Patch
 
