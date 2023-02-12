@@ -1,5 +1,6 @@
 # json-merge
 ![build workflow](https://github.com/zezutom/json-merge/actions/workflows/build.yaml/badge.svg)
+[![codecov](https://codecov.io/github/zezutom/json-merge/branch/main/graph/badge.svg?token=QTECLTTOTU)](https://codecov.io/github/zezutom/json-merge)
 
 **json-merge** is a Kotlin library that lets you merge JSON objects and arrays.
 
