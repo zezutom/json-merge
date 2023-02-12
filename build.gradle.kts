@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.7.21"
+    jacoco
 }
 
 group = "com.tomaszezula.mergious"
@@ -19,8 +20,17 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
+}
+
+tasks.jacocoTestReport {
+    executionData(fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec"))
+    reports {
+        xml.required.set(true)
+    }
+    dependsOn(tasks.test) // tests are required to run before generating the report
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
 }
