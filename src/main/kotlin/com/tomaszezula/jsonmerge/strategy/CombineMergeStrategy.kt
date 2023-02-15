@@ -1,6 +1,7 @@
-package com.tomaszezula.mergious.strategy
+package com.tomaszezula.jsonmerge.strategy
 
-import com.tomaszezula.mergious.*
+import com.tomaszezula.jsonmerge.*
+import com.tomaszezula.jsonmerge.model.MergeMode
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONString
@@ -9,6 +10,8 @@ class CombineMergeStrategy : MergeStrategy {
     companion object {
         const val MergedField = "merged"
     }
+
+    override val mergeMode: MergeMode = MergeMode.COMBINE
 
     override fun merge(base: Json, other: Json): MergeResult = when (base) {
         is JsonObject -> tryMerge(base) {

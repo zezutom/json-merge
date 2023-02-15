@@ -6,7 +6,7 @@ plugins {
     jacoco
 }
 
-group = "com.tomaszezula.mergious"
+group = "com.tomaszezula.json-merge"
 version = "0.0.1"
 
 repositories {

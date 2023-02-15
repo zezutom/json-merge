@@ -1,6 +1,6 @@
-package com.tomaszezula.mergious.extensions
+package com.tomaszezula.jsonmerge.extensions
 
-import com.tomaszezula.mergious.*
+import com.tomaszezula.jsonmerge.*
 import io.kotest.matchers.shouldBe
 import org.json.JSONArray
 import org.json.JSONObject

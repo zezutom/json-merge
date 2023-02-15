@@ -1,4 +1,4 @@
-package com.tomaszezula.mergious
+package com.tomaszezula.jsonmerge
 
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe

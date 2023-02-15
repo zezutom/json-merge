@@ -1,37 +1,35 @@
-package com.tomaszezula.mergious
+package com.tomaszezula.jsonmerge
 
 import org.junit.jupiter.api.Test
 
-class MergeObjectInReplaceModeTest {
+class MergeObjectInCombineModeTest {
 
-    private val merger = MergeBuilder().withReplaceMode().build()
+    private val merger = MergeBuilder().withCombineMode().build()
 
     @Test
-    fun `a primitive field should be updated with a new value`() {
+    fun `primitive fields should be merged into an array`() {
         val mergeResult = merger.merge(
             """
            {
              "a":"b"
            }
-        """.trimIndent(),
-            """
+        """.trimIndent(), """
            {
              "a":"z"
            }
         """.trimIndent()
         )
         verifySuccess(
-            mergeResult,
-            """
+            mergeResult, """
                {
-                 "a":"z"
+                 "a":["b", "z"]
                }
         """.trimIndent()
         )
     }
 
     @Test
-    fun `existing member field should be updated with a new value and all fields are dropped`() {
+    fun `all values should be preserved in a complex object merge`() {
         val mergeResult = merger.merge(
             """
            {
@@ -41,25 +39,27 @@ class MergeObjectInReplaceModeTest {
                "f":"g"
              }
            }
-        """.trimIndent(),
-            """
+        """.trimIndent(), """
            {
              "a":"z"
            }
         """.trimIndent()
         )
         verifySuccess(
-            mergeResult,
-            """
-               {
-                 "a":"z"
-               }
+            mergeResult, """
+           {
+             "a":["b","z"],
+             "c": {
+               "d":"e",
+               "f":"g"
+             }
+           }
         """.trimIndent()
         )
     }
 
     @Test
-    fun `null value should be dropped`() {
+    fun `null value in the other JSON should be ignored`() {
         val mergeResult = merger.merge(
             """
            {
@@ -69,15 +69,22 @@ class MergeObjectInReplaceModeTest {
                "f":"g"
              }
            }
-        """.trimIndent(),
-            """
+        """.trimIndent(), """
            {
              "c":null
            }
         """.trimIndent()
         )
         verifySuccess(
-            mergeResult, "{}"
+            mergeResult, """
+           {
+             "a":"b",
+             "c": {
+               "d":"e",
+               "f":"g"
+             }
+           }
+        """.trimIndent()
         )
     }
 }

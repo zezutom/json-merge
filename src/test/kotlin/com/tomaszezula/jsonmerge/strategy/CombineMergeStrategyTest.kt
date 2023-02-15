@@ -1,7 +1,7 @@
-package com.tomaszezula.mergious.strategy
+package com.tomaszezula.jsonmerge.strategy
 
-import com.tomaszezula.mergious.toJson
-import com.tomaszezula.mergious.verifySuccess
+import com.tomaszezula.jsonmerge.toJson
+import com.tomaszezula.jsonmerge.verifySuccess
 import org.junit.jupiter.api.Test
 
 class CombineMergeStrategyTest {

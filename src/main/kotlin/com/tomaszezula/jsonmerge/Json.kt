@@ -1,4 +1,4 @@
-package com.tomaszezula.mergious
+package com.tomaszezula.jsonmerge
 
 import org.json.JSONArray
 import org.json.JSONObject

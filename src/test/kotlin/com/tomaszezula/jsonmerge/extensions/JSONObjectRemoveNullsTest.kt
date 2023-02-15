@@ -1,6 +1,6 @@
-package com.tomaszezula.mergious.extensions
+package com.tomaszezula.jsonmerge.extensions
 
-import com.tomaszezula.mergious.removeNulls
+import com.tomaszezula.jsonmerge.removeNulls
 import org.json.JSONObject
 import org.json.JSONObject.NULL
 import org.junit.jupiter.api.Test

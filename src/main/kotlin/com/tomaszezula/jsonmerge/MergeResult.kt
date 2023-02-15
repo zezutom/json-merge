@@ -1,4 +1,4 @@
-package com.tomaszezula.mergious
+package com.tomaszezula.jsonmerge
 
 sealed interface MergeResult
 

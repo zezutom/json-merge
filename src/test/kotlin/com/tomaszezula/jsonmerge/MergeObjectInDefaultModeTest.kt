@@ -1,9 +1,15 @@
-package com.tomaszezula.mergious
+package com.tomaszezula.jsonmerge
 
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class MergeObjectInDefaultModeTest {
     private val merger = MergeBuilder().build()
+
+    @Test
+    fun `json-patch should be the default mode`() {
+        merger.mergeMode shouldBe MergeBuilder().withJsonPatchMode().build().mergeMode
+    }
 
     @Test
     fun `a primitive field should be updated with a new value`() {

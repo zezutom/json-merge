@@ -1,6 +1,6 @@
-package com.tomaszezula.mergious.extensions
+package com.tomaszezula.jsonmerge.extensions
 
-import com.tomaszezula.mergious.append
+import com.tomaszezula.jsonmerge.append
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
