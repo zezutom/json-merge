@@ -31,6 +31,12 @@ class MergeBuilder {
 private class DefaultMerger(private val strategy: MergeStrategy) : Merger {
     override val mergeMode: MergeMode = strategy.mergeMode
 
+    private val findAndReplaceStrategy = ReplaceMergeStrategy()
+
     override fun merge(base: String, other: String?): MergeResult =
         strategy.merge(base.toJson(), other.toJson())
+
+    override fun merge(jsonPath: String, base: String, other: Any): MergeResult =
+        findAndReplaceStrategy.replace(jsonPath, base.toJson(), other)
+
 }

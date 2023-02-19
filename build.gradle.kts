@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     implementation("org.json:json:20220924")
+    implementation("com.jayway.jsonpath:json-path:2.7.0")
     testImplementation(kotlin("test"))
     testImplementation("io.kotest:kotest-assertions-core:5.5.4")
 }

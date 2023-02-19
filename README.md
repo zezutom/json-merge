@@ -10,6 +10,7 @@ The library supports several merging modes.
 * [JSON Merge Patch (RFC 7386)](#json-merge-patch). That's the default.
 * [Combine mode](#combine-mode)
 * [Replace mode](#replace-mode)
+* [Selective replacement using JsonPath](#selective-replacement-using-jsonpath)
 
 ## Json Merge Patch
 
@@ -19,12 +20,12 @@ Adheres to [JSON Merge Patch (RFC 7386)](https://www.rfc-editor.org/rfc/rfc7386)
 val merger = MergeBuilder().build()
 val original =
     """
-           { "a": "b", "c": [1,2,3] }
-        """
+       { "a": "b", "c": [1,2,3] }
+    """
 val other =
     """
-           { "a": "B", "c": [4,5,6] }
-        """
+       { "a": "B", "c": [4,5,6] }
+    """
 val result = merger.merge(original, other)
 // result: { "a": "B", "c": [4,5,6] }
 ```
@@ -86,12 +87,12 @@ This mode tries to preserve maximum information from both the original and the o
 val merger = MergeBuilder().withCombineMode().build()
 val original =
     """
-           { "a": "b" }
-        """
+       { "a": "b" }
+    """
 val other =
     """
-           { "a": "c" }
-        """
+       { "a": "c" }
+    """
 val result = merger.merge(original, other)
 // result: { "a": ["b", "c"] }
 ```
@@ -153,12 +154,56 @@ This mode simply ensures that the original object or array is fully replaced wit
 val merger = MergeBuilder().withReplaceMode().build()
 val original =
     """
-           { "a": "b", "c": [1,2,3] }
-        """
+       { "a": "b", "c": [1,2,3] }
+    """
 val other =
     """
-           { "a": "B", "c": [4,5,6] }
-        """
+       { "a": "B", "c": [4,5,6] }
+    """
 val result = merger.merge(original, other)
 // result: { "a": "B", "c": [4,5,6] }
+```
+
+## Selective replacement using JsonPath
+
+This mode allows you to search for a property in a JSON object and replace it
+with the provided value.
+
+The search expression must be a valid [JsonPath](https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html) expression.
+The `find and replace` functionality relies on the awesome [Jayway's JsonPath](https://github.com/json-path/JsonPath) library.
+
+```kotlin
+val merger = MergeBuilder().withReplaceMode().build()
+val original =
+    """
+        { "a": "b", "c": { "d": "hello" } }
+    """
+val result = merger.merge("\$.c.d", original, "hi!")
+// result: { "a": "b", "c": { "d": "hi!" } }
+```
+
+If the property is not found then the original object remains untouched.
+
+```kotlin
+val merger = MergeBuilder().withReplaceMode().build()
+val original =
+    """
+        { "a": "b", "c": { "d": "hello" } }
+    """
+val result = merger.merge("\$.c.e", original, "hi!")    // `c.e` path does not exist 
+// result: { "a": "b", "c": { "d": "hello" } }
+```
+
+The replacement value does not need to match the original data type. It can be anything.
+
+```kotlin
+val merger = MergeBuilder().withReplaceMode().build()
+val original =
+    """
+        { "a": "b", "c": { "d": "hello" } }
+    """
+val result = merger.merge("\$.c.d", original, """
+  { "some": "other object" }
+""")
+// result: { "a": "b", "c": { "d": { "some": "other object" } } }
 ```
