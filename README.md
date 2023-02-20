@@ -12,6 +12,8 @@ The library supports several merging modes.
 * [Replace mode](#replace-mode)
 * [Selective replacement using JsonPath](#selective-replacement-using-jsonpath)
 
+Check how to work with [merge results](#merge-results-handling) and how to deal with exceptions.
+
 ## Json Merge Patch
 
 Adheres to [JSON Merge Patch (RFC 7386)](https://www.rfc-editor.org/rfc/rfc7386). This is the default behaviour.
@@ -206,4 +208,59 @@ val result = merger.merge("\$.c.d", original, """
   { "some": "other object" }
 """)
 // result: { "a": "b", "c": { "d": { "some": "other object" } } }
+```
+
+## Merge results handling
+
+`json-merge` is designed not to throw exceptions at will. Instead, it consistently
+returns a [MergeResult](src/main/kotlin/com/tomaszezula/jsonmerge/MergeResult.kt) object. 
+This equips you with flexible options how to parse and interpret the result.
+
+### Option 1: Use the wrapper object
+The library uses the core `org.json` library. Raw JSON objects (also arrays or primitive values) are stored
+in custom wrapper objects - see [Json](src/main/kotlin/com/tomaszezula/jsonmerge/Json.kt).
+
+```kotlin
+import org.json.JSONObject
+import com.tomaszezula.jsonmerge.Success
+import com.tomaszezula.jsonmerge.Failure
+import com.tomaszezula.jsonmerge.JsonObject
+
+val json = JSONObject(
+    """
+        { "a": "b" }
+    """)
+val mergeResult = Success(JsonObject(json))
+val resultValue = when (mergeResult) {
+    is Success -> mergeResult.value         
+    is Failure -> mergeResult.throwable
+}
+// JSONObject(
+//    """
+//        { "a": "b" }
+//    """)
+```
+
+### Option 2: Grab a string representation of the underlying value
+Unwrap the actual JSON string. This operation can fail.
+```kotlin
+val json = JSONObject(
+    """
+        { "a": "b" }
+    """)
+val jsonString = Success(JsonObject(json)).getOrThrow()
+// { "a": "b" }
+```
+
+### Option 3: Pretty print a string representation of the underlying value
+Unwrap the actual JSON string. This operation can fail.
+```kotlin
+val json = JSONObject(
+    """
+        { "a": "b" }
+    """)
+val jsonString = Success(JsonObject(json)).getOrThrow(prettyPrint=true)
+// {
+//   "a": "b"
+// }
 ```
